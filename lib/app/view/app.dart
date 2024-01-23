@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:listener_test/app/app_router.dart';
+import 'package:listener_test/app/router.dart';
 import 'package:listener_test/l10n/l10n.dart';
 import 'package:listener_test/login/bloc/login_bloc.dart';
 
@@ -21,7 +22,8 @@ class App extends StatelessWidget {
         ),
       ],
       child: MaterialApp.router(
-        routerConfig: _appRouter.config(),
+        // routerConfig: _appRouter.config(),
+        routerConfig: goRouter,
         theme: ThemeData(
           appBarTheme: AppBarTheme(
             backgroundColor: Theme.of(context).colorScheme.inversePrimary,

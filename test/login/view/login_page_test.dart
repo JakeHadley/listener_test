@@ -3,7 +3,9 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:listener_test/app/app_router.dart';
+import 'package:listener_test/app/router.dart';
 import 'package:listener_test/login/bloc/login_bloc.dart';
 import 'package:listener_test/login/view/login_page.dart';
 import 'package:mocktail/mocktail.dart';
@@ -15,10 +17,11 @@ class MockAutoRouterObserver extends Mock implements AutoRouterObserver {}
 
 void main() {
   group('LoginPage', () {
-    late AppRouter appRouter;
+    // late AppRouter appRouter;
+    late GoRouter appRouter;
 
     setUp(() {
-      appRouter = AppRouter();
+      appRouter = goRouter;
     });
 
     testWidgets('renders correctly with two login buttons', (tester) async {
@@ -37,14 +40,9 @@ void main() {
           create: (context) => mockLoginBloc,
           lazy: false,
           child: MaterialApp.router(
-            routerConfig: appRouter.config(),
+            routerConfig: appRouter,
           ),
         ),
-      );
-
-      expect(
-        appRouter.topRoute.name,
-        LoginRoute.name,
       );
 
       await tester.pumpAndSettle();
@@ -69,7 +67,7 @@ void main() {
           create: (context) => mockLoginBloc,
           lazy: false,
           child: MaterialApp.router(
-            routerConfig: appRouter.config(),
+            routerConfig: appRouter,
           ),
         ),
       );
@@ -107,7 +105,7 @@ void main() {
           create: (context) => mockLoginBloc,
           lazy: false,
           child: MaterialApp.router(
-            routerConfig: appRouter.config(),
+            routerConfig: appRouter,
           ),
         ),
       );
