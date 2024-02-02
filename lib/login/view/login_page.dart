@@ -1,11 +1,16 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:listener_test/app/router_utils.dart';
 import 'package:listener_test/login/bloc/login_bloc.dart';
 
-@RoutePage()
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
+
+  static final route = GoRoute(
+    path: Pages.login.path,
+    builder: (context, state) => const LoginPage(),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -13,24 +18,22 @@ class LoginPage extends StatelessWidget {
       body: BlocConsumer<LoginBloc, LoginState>(
         listener: (context, state) {
           if (state is LoginLoggedIn) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                key: ValueKey('login_success_snackbar'),
-                content: Text('success'),
-                duration: Duration(seconds: 5),
-              ),
-            );
+            context.go(Pages.posts.path);
+          }
+          if (state is LoginNewUser) {
+            context.go(Pages.onboarding.path);
           }
           if (state is LoginError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                key: ValueKey('login_error_snackbar'),
-                content: Text('some error'),
-                duration: Duration(seconds: 5),
+              SnackBar(
+                key: const ValueKey('login_error_snackbar'),
+                content: Text(state.message),
+                duration: const Duration(seconds: 5),
               ),
             );
           }
         },
+        // use this for button animation: https://blog.geekyants.com/flutter-login-animation-ab3e6ed4bd19
         builder: (context, state) {
           return Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -44,13 +47,13 @@ class LoginPage extends StatelessWidget {
                   child: const Text('Sign in with Google'),
                 ),
               ),
-              Center(
-                child: ElevatedButton(
-                  key: const ValueKey('login_apple_button'),
-                  onPressed: () {},
-                  child: const Text('Sign in with Apple'),
-                ),
-              ),
+              // Center(
+              //   child: ElevatedButton(
+              //     key: const ValueKey('login_apple_button'),
+              //     onPressed: () {},
+              //     child: const Text('Sign in with Apple'),
+              //   ),
+              // ),
             ],
           );
         },

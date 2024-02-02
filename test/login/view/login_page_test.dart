@@ -1,77 +1,51 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
-import 'package:listener_test/app/app_router.dart';
-import 'package:listener_test/app/router.dart';
 import 'package:listener_test/login/bloc/login_bloc.dart';
 import 'package:listener_test/login/view/login_page.dart';
+import 'package:listener_test/models/user.dart';
+import 'package:listener_test/onboarding/view/onboarding_page.dart';
+import 'package:listener_test/posts/view/posts_page.dart';
 import 'package:mocktail/mocktail.dart';
+
+import '../../helpers/helpers.dart';
 
 class MockLoginBloc extends MockBloc<LoginEvent, LoginState>
     implements LoginBloc {}
 
-class MockAutoRouterObserver extends Mock implements AutoRouterObserver {}
-
 void main() {
   group('LoginPage', () {
-    // late AppRouter appRouter;
-    late GoRouter appRouter;
+    late LoginBloc loginBloc;
 
     setUp(() {
-      appRouter = goRouter;
+      loginBloc = MockLoginBloc();
     });
 
     testWidgets('renders correctly with two login buttons', (tester) async {
-      final mockLoginBloc = MockLoginBloc();
-
       whenListen(
-        mockLoginBloc,
+        loginBloc,
         Stream.fromIterable([
-          LoginInitial(),
+          LoginLoggedOut(),
         ]),
-        initialState: LoginInitial(),
+        initialState: LoginLoggedOut(),
       );
-
-      await tester.pumpWidget(
-        BlocProvider<LoginBloc>(
-          create: (context) => mockLoginBloc,
-          lazy: false,
-          child: MaterialApp.router(
-            routerConfig: appRouter,
-          ),
-        ),
-      );
-
+      await tester.pumpAppWithRoutes<LoginBloc>(loginBloc);
       await tester.pumpAndSettle();
 
       expect(find.byType(LoginPage), findsOneWidget);
-      expect(find.byType(ElevatedButton), findsNWidgets(2));
+      expect(find.byType(ElevatedButton), findsNWidgets(1));
     });
 
     testWidgets('google button adds LoginGoogle event', (tester) async {
-      final mockLoginBloc = MockLoginBloc();
-
       whenListen(
-        mockLoginBloc,
+        loginBloc,
         Stream.fromIterable([
-          LoginInitial(),
+          LoginLoggedOut(),
         ]),
-        initialState: LoginInitial(),
+        initialState: LoginLoggedOut(),
       );
 
-      await tester.pumpWidget(
-        BlocProvider<LoginBloc>(
-          create: (context) => mockLoginBloc,
-          lazy: false,
-          child: MaterialApp.router(
-            routerConfig: appRouter,
-          ),
-        ),
-      );
-
+      await tester.pumpAppWithRoutes<LoginBloc>(loginBloc);
       await tester.pumpAndSettle();
 
       final loginGoogleButton =
@@ -82,41 +56,71 @@ void main() {
       await tester.tap(loginGoogleButton);
       await tester.pumpAndSettle();
 
-      verify(() => mockLoginBloc.add(LoginLoginGoogle()));
+      verify(() => loginBloc.add(LoginLoginGoogle()));
     });
 
-    testWidgets('shows success snackbar when login is successful',
+    testWidgets('navigates to PostsPage when login is successful',
         (tester) async {
-      final mockLoginBloc = MockLoginBloc();
+      final dummyUser = User(uid: 'id', displayName: 'name');
 
       whenListen(
-        mockLoginBloc,
+        loginBloc,
         Stream.fromIterable([
-          LoginInitial(),
-          LoginLoggedIn(),
+          LoginLoggedOut(),
+          LoginLoggedIn(dummyUser),
         ]),
-        initialState: LoginInitial(),
+        initialState: LoginLoggedOut(),
       );
 
-      when(() => mockLoginBloc.state).thenReturn(LoginLoggedIn());
-
-      await tester.pumpWidget(
-        BlocProvider<LoginBloc>(
-          create: (context) => mockLoginBloc,
-          lazy: false,
-          child: MaterialApp.router(
-            routerConfig: appRouter,
-          ),
-        ),
-      );
-
+      await tester.pumpAppWithRoutes<LoginBloc>(loginBloc);
       await tester.pumpAndSettle();
 
-      expect(find.byType(BlocConsumer<LoginBloc, LoginState>), findsOneWidget);
+      expect(find.byType(PostsPage), findsOneWidget);
+    });
+
+    testWidgets('shows snackbar when login fails', (tester) async {
+      whenListen(
+        loginBloc,
+        Stream.fromIterable([
+          LoginLoggedOut(),
+          LoginError('error'),
+        ]),
+        initialState: LoginLoggedOut(),
+      );
+
+      await tester.pumpAppWithRoutes<LoginBloc>(loginBloc);
+      await tester.pumpAndSettle();
+
+      final loginGoogleButton =
+          find.byKey(const ValueKey('login_google_button'));
+
+      expect(find.byType(LoginPage), findsOneWidget);
+      expect(loginGoogleButton, findsOneWidget);
+
       expect(
-        find.byKey(const ValueKey('login_success_snackbar')),
+        find.byKey(const ValueKey('login_error_snackbar')),
         findsOneWidget,
       );
+    });
+
+    testWidgets(
+        'navigates to Onboarding when login is successful and the user is new',
+        (tester) async {
+      final dummyUser = User(uid: 'id', displayName: 'name');
+
+      whenListen(
+        loginBloc,
+        Stream.fromIterable([
+          LoginLoggedOut(),
+          LoginNewUser(dummyUser),
+        ]),
+        initialState: LoginLoggedOut(),
+      );
+
+      await tester.pumpAppWithRoutes<LoginBloc>(loginBloc);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(OnboardingPage), findsOneWidget);
     });
   });
 }

@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:listener_test/app/app_router.dart';
 import 'package:listener_test/app/router.dart';
 import 'package:listener_test/l10n/l10n.dart';
 import 'package:listener_test/login/bloc/login_bloc.dart';
+import 'package:listener_test/models/user.dart';
 
 class App extends StatelessWidget {
-  App({super.key});
-
-  final _appRouter = AppRouter();
+  const App({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -17,27 +15,31 @@ class App extends StatelessWidget {
       providers: [
         BlocProvider<LoginBloc>(
           create: (BuildContext context) {
-            return LoginBloc();
+            return LoginBloc()..add(LoginInfoChanged(User.empty()));
           },
         ),
       ],
-      child: MaterialApp.router(
-        // routerConfig: _appRouter.config(),
-        routerConfig: goRouter,
-        theme: ThemeData(
-          appBarTheme: AppBarTheme(
-            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      child: BlocListener<LoginBloc, LoginState>(
+        listener: (context, state) {
+          AppRouter.goRouter.refresh();
+        },
+        child: MaterialApp.router(
+          routerConfig: AppRouter.goRouter,
+          theme: ThemeData(
+            appBarTheme: AppBarTheme(
+              backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+            ),
+            useMaterial3: true,
+            brightness: Brightness.dark,
           ),
-          useMaterial3: true,
-          brightness: Brightness.dark,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          debugShowCheckedModeBanner: false,
         ),
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: AppLocalizations.supportedLocales,
-        debugShowCheckedModeBanner: false,
       ),
     );
   }
